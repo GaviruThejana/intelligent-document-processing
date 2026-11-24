@@ -1,0 +1,61 @@
+# docker compose up --build   ->  UI http://localhost:3000 | API + Swagger http://localhost:8000/docs
+x-backend: &backend
+  build: ./backend
+  environment: &env
+    DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-idp}:${POSTGRES_PASSWORD:-idp}@db:5432/${POSTGRES_DB:-idp}
+    REDIS_URL: redis://redis:6379/0
+    QUEUE_MODE: celery
+    UPLOAD_DIR: /data/uploads
+    MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-10}
+    OCR_MIN_CONFIDENCE: ${OCR_MIN_CONFIDENCE:-60}
+    FIELD_MIN_CONFIDENCE: ${FIELD_MIN_CONFIDENCE:-70}
+    CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+    ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-sonnet-4-6}
+  volumes: [uploads:/data/uploads]
+  depends_on:
+    db: { condition: service_healthy }
+    redis: { condition: service_healthy }
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-idp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-idp}
+      POSTGRES_DB: ${POSTGRES_DB:-idp}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-idp} -d ${POSTGRES_DB:-idp}"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]   # queued jobs survive a Redis restart
+    volumes: [redisdata:/data]
+    healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: 5s, retries: 10 }
+
+  api:
+    <<: *backend
+    ports: ["8000:8000"]
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 5s
+      retries: 20
+
+  worker:
+    <<: *backend
+    command: ["celery", "-A", "app.worker.celery_app", "worker", "-l", "info", "-c", "2"]
+    depends_on:
+      api: { condition: service_healthy }   # api creates the tables on startup
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    ports: ["3000:3000"]
+    depends_on: [api]
+
+volumes: { pgdata: {}, redisdata: {}, uploads: {} }

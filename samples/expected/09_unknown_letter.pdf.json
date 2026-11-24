@@ -1,0 +1,9 @@
+{
+  "doc_type": "unknown",
+  "status": "Needs Review",
+  "issue_codes_include": [
+    "UNKNOWN_DOCUMENT_TYPE"
+  ],
+  "fields": null,
+  "note": "Non-business letter"
+}

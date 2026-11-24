@@ -1,0 +1,42 @@
+{
+  "doc_type": "unknown",
+  "status": "Needs Review",
+  "ocr_method": null,
+  "ocr_mean_confidence": null,
+  "extractor": null,
+  "data": {
+    "document_number": null,
+    "document_date": null,
+    "supplier_name": null,
+    "customer_name": null,
+    "currency": null,
+    "subtotal": null,
+    "tax": null,
+    "discount": null,
+    "total": null,
+    "line_items": null
+  },
+  "confidence": {},
+  "issues": [
+    {
+      "id": 5,
+      "code": "EXTRACTION_UNAVAILABLE",
+      "severity": "error",
+      "field": null,
+      "message": "No extraction service was available; fields must be entered manually.",
+      "acknowledged": false,
+      "acknowledged_by": null,
+      "acknowledged_note": null
+    },
+    {
+      "id": 6,
+      "code": "UNKNOWN_DOCUMENT_TYPE",
+      "severity": "error",
+      "field": "doc_type",
+      "message": "Document could not be classified as an invoice, receipt or purchase order.",
+      "acknowledged": false,
+      "acknowledged_by": null,
+      "acknowledged_note": null
+    }
+  ]
+}

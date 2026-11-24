@@ -1,0 +1,31 @@
+{
+  "doc_type": "invoice",
+  "status": "Ready for Approval",
+  "issue_codes_include": [],
+  "fields": {
+    "document_number": "INV-3003",
+    "document_date": "2026-02-10",
+    "supplier_name": "Lanka Parts Co",
+    "customer_name": "Gamma Works",
+    "currency": "EUR",
+    "subtotal": "200.00",
+    "discount": "20.00",
+    "tax": "18.00",
+    "total": "198.00",
+    "line_items": [
+      {
+        "description": "Bearing 6204",
+        "quantity": "8",
+        "unit_price": "12.50",
+        "amount": "100.00"
+      },
+      {
+        "description": "Hydraulic Seal Kit",
+        "quantity": "4",
+        "unit_price": "25.00",
+        "amount": "100.00"
+      }
+    ]
+  },
+  "note": "JPEG (lossy) OCR, EUR, discount + tax"
+}

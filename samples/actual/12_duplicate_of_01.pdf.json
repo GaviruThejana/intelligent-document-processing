@@ -1,0 +1,18 @@
+{
+  "duplicate": true,
+  "message": "Identical file already uploaded as document 02fa0997-5200-43e5-ba59-b61f7fb9cdfb; no new job created.",
+  "document": {
+    "id": "02fa0997-5200-43e5-ba59-b61f7fb9cdfb",
+    "filename": "01_clean_invoice.pdf",
+    "content_type": "application/pdf",
+    "size_bytes": 1851,
+    "sha256": "6305a0ac17136666fb0ec32b3cc4b35edd28c2891a4faea692c99802e2a7283c",
+    "status": "Ready for Approval",
+    "doc_type": "invoice",
+    "classification_confidence": 1.0,
+    "retry_count": 0,
+    "error_message": null,
+    "created_at": "2026-11-24T12:51:22.541105",
+    "updated_at": "2026-11-24T12:51:22.821489"
+  }
+}

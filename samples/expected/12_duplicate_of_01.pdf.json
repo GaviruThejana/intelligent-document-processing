@@ -1,0 +1,7 @@
+{
+  "doc_type": "invoice",
+  "status": "(duplicate)",
+  "issue_codes_include": [],
+  "fields": null,
+  "note": "Byte-identical to #1: must return existing document, no new job"
+}

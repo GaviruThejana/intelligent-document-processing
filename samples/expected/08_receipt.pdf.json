@@ -1,0 +1,10 @@
+{
+  "doc_type": "receipt",
+  "status": "Needs Review",
+  "issue_codes_include": [
+    "EXTRACTION_NOT_SUPPORTED",
+    "MISSING_FIELD"
+  ],
+  "fields": null,
+  "note": "Receipt: classification only (documented limitation)"
+}

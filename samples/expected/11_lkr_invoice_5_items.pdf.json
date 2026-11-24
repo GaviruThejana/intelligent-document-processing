@@ -1,0 +1,49 @@
+{
+  "doc_type": "invoice",
+  "status": "Ready for Approval",
+  "issue_codes_include": [],
+  "fields": {
+    "document_number": "LK-2026-044",
+    "document_date": "2026-03-15",
+    "supplier_name": "Colombo Stationers (Pvt) Ltd",
+    "customer_name": "Kandy Education Trust",
+    "currency": "LKR",
+    "subtotal": "48650.00",
+    "discount": "0.00",
+    "tax": "0.00",
+    "total": "48650.00",
+    "line_items": [
+      {
+        "description": "Printer Paper A4 (500)",
+        "quantity": "20",
+        "unit_price": "1200.00",
+        "amount": "24000.00"
+      },
+      {
+        "description": "Ink Cartridge Black",
+        "quantity": "4",
+        "unit_price": "3500.00",
+        "amount": "14000.00"
+      },
+      {
+        "description": "Stapler Heavy Duty",
+        "quantity": "3",
+        "unit_price": "950.00",
+        "amount": "2850.00"
+      },
+      {
+        "description": "Whiteboard Marker Set",
+        "quantity": "10",
+        "unit_price": "420.00",
+        "amount": "4200.00"
+      },
+      {
+        "description": "File Folder (Pack of 10)",
+        "quantity": "6",
+        "unit_price": "600.00",
+        "amount": "3600.00"
+      }
+    ]
+  },
+  "note": "LKR, 'Rs.' prefixes, thousands separators, DD/MM/YYYY date, 5 lines"
+}

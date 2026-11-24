@@ -1,0 +1,72 @@
+{
+  "doc_type": "receipt",
+  "status": "Needs Review",
+  "ocr_method": "pdf_text",
+  "ocr_mean_confidence": null,
+  "extractor": "none",
+  "data": {
+    "document_number": null,
+    "document_date": null,
+    "supplier_name": null,
+    "customer_name": null,
+    "currency": null,
+    "subtotal": null,
+    "tax": null,
+    "discount": null,
+    "total": null,
+    "line_items": null
+  },
+  "confidence": {},
+  "issues": [
+    {
+      "id": 10,
+      "code": "EXTRACTION_NOT_SUPPORTED",
+      "severity": "warning",
+      "field": null,
+      "message": "Automatic field extraction is not implemented for receipts; verify or enter fields manually.",
+      "acknowledged": false,
+      "acknowledged_by": null,
+      "acknowledged_note": null
+    },
+    {
+      "id": 11,
+      "code": "MISSING_FIELD",
+      "severity": "error",
+      "field": "document_date",
+      "message": "Required field 'document_date' is missing.",
+      "acknowledged": false,
+      "acknowledged_by": null,
+      "acknowledged_note": null
+    },
+    {
+      "id": 12,
+      "code": "MISSING_FIELD",
+      "severity": "error",
+      "field": "supplier_name",
+      "message": "Required field 'supplier_name' is missing.",
+      "acknowledged": false,
+      "acknowledged_by": null,
+      "acknowledged_note": null
+    },
+    {
+      "id": 13,
+      "code": "MISSING_FIELD",
+      "severity": "error",
+      "field": "currency",
+      "message": "Required field 'currency' is missing.",
+      "acknowledged": false,
+      "acknowledged_by": null,
+      "acknowledged_note": null
+    },
+    {
+      "id": 14,
+      "code": "MISSING_FIELD",
+      "severity": "error",
+      "field": "total",
+      "message": "Required field 'total' is missing.",
+      "acknowledged": false,
+      "acknowledged_by": null,
+      "acknowledged_note": null
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "doc_type": "invoice",
+  "status": "Ready for Approval",
+  "issue_codes_include": [],
+  "fields": {
+    "document_number": "INV-1414",
+    "document_date": "2026-01-15",
+    "supplier_name": "Acme Supplies Ltd",
+    "customer_name": "Beta Traders (Pvt) Ltd",
+    "currency": "USD",
+    "subtotal": "101.00",
+    "discount": null,
+    "tax": null,
+    "total": "101.00",
+    "line_items": [
+      {
+        "description": "USB-C Cable",
+        "quantity": "10",
+        "unit_price": "5.00",
+        "amount": "50.00"
+      },
+      {
+        "description": "Laptop Stand",
+        "quantity": "2",
+        "unit_price": "25.50",
+        "amount": "51.00"
+      }
+    ]
+  },
+  "note": "Optional fields absent -> null, not 0"
+}

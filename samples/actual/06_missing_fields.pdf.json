@@ -1,0 +1,71 @@
+{
+  "doc_type": "invoice",
+  "status": "Needs Review",
+  "ocr_method": "pdf_text",
+  "ocr_mean_confidence": null,
+  "extractor": "rules",
+  "data": {
+    "document_number": null,
+    "document_date": null,
+    "supplier_name": "Acme Supplies Ltd",
+    "customer_name": "Beta Traders (Pvt) Ltd",
+    "currency": "USD",
+    "subtotal": "101.00",
+    "tax": "9.10",
+    "discount": "10.00",
+    "total": "100.10",
+    "line_items": [
+      {
+        "description": "USB-C Cable",
+        "quantity": "10",
+        "unit_price": "5.00",
+        "amount": "50.00"
+      },
+      {
+        "description": "Laptop Stand",
+        "quantity": "2",
+        "unit_price": "25.50",
+        "amount": "51.00"
+      }
+    ]
+  },
+  "confidence": {
+    "supplier_name": null,
+    "customer_name": null,
+    "currency": null,
+    "subtotal": null,
+    "discount": null,
+    "tax": null,
+    "total": null,
+    "line_items.0.description": null,
+    "line_items.0.quantity": null,
+    "line_items.0.unit_price": null,
+    "line_items.0.amount": null,
+    "line_items.1.description": null,
+    "line_items.1.quantity": null,
+    "line_items.1.unit_price": null,
+    "line_items.1.amount": null
+  },
+  "issues": [
+    {
+      "id": 8,
+      "code": "MISSING_FIELD",
+      "severity": "error",
+      "field": "document_number",
+      "message": "Required field 'document_number' is missing.",
+      "acknowledged": false,
+      "acknowledged_by": null,
+      "acknowledged_note": null
+    },
+    {
+      "id": 9,
+      "code": "MISSING_FIELD",
+      "severity": "error",
+      "field": "document_date",
+      "message": "Required field 'document_date' is missing.",
+      "acknowledged": false,
+      "acknowledged_by": null,
+      "acknowledged_note": null
+    }
+  ]
+}

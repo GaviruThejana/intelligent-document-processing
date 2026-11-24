@@ -1,0 +1,33 @@
+{
+  "doc_type": "unknown",
+  "status": "Needs Review",
+  "issue_codes_include": [
+    "POOR_SCAN_QUALITY"
+  ],
+  "fields": {
+    "document_number": "INV-1010",
+    "document_date": "2026-01-15",
+    "supplier_name": "Acme Supplies Ltd",
+    "customer_name": "Beta Traders (Pvt) Ltd",
+    "currency": "USD",
+    "subtotal": "101.00",
+    "discount": "10.00",
+    "tax": "9.10",
+    "total": "100.10",
+    "line_items": [
+      {
+        "description": "USB-C Cable",
+        "quantity": "10",
+        "unit_price": "5.00",
+        "amount": "50.00"
+      },
+      {
+        "description": "Laptop Stand",
+        "quantity": "2",
+        "unit_price": "25.50",
+        "amount": "51.00"
+      }
+    ]
+  },
+  "note": "Severely degraded scan (low-res, blur, skew, noise): nothing usable is read - must be flagged, never silently accepted"
+}
