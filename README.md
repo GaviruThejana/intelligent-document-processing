@@ -18,7 +18,7 @@ The commands below use a Unix shell. For local frontend development, use Node.js
 # backend (needs tesseract-ocr and poppler-utils installed on the OS)
 cd backend && python -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt
-python -m pytest tests -v                 # 43 tests (OCR integration cases skip when system binaries are absent)
+python -m pytest tests -v                 # 46 tests (OCR integration cases skip when system binaries are absent)
 python -m scripts.run_samples             # regenerates samples/ + root and docs sample reports (expected vs actual)
 
 # run API without Redis (processing happens inline in the request)
@@ -44,7 +44,7 @@ docs/           ARCHITECTURE.md · API.md · schema.sql · openapi.json · SAMPL
 ```
 
 ## How it behaves (one paragraph)
-Every upload is hashed; an identical file returns the existing document and creates no job. New files are stored content-addressed and queued; a Celery worker claims the job with an atomic status update, reads text (PDF text layer or Tesseract with per-line confidence), classifies, extracts (LLM if configured, else/and rules; failures fall back and are audited), and validates with `Decimal` arithmetic. Anything uncertain goes to **Needs Review**; clean documents become **Ready for Approval**. Reviewers correct fields (originals are kept; every change is audited), acknowledge any remaining issues with a note, and approve. Only approved documents can be exported.
+Every upload is hashed; an identical file returns the existing document and creates no job. New files are stored content-addressed and queued; a Celery worker claims the job with an atomic status update, reads text (PDF text layer or Tesseract with per-line confidence), classifies and extracts. When LLM extraction is enabled, each returned field is checked against source text before validation; unverifiable values are nulled and routed to **Needs Review**. Rule extraction is the fallback. Money checks use `Decimal`. Reviewers correct fields (originals are kept; every change is audited), acknowledge remaining issues with a note, and approve. Only approved documents can be exported.
 
 ## Design choices, trade-offs, limitations
 See `docs/ARCHITECTURE.md` (decisions) and `docs/LIMITATIONS.md` (honest list, e.g. receipts are classification-only, no auth).
@@ -53,11 +53,8 @@ See `docs/ARCHITECTURE.md` (decisions) and `docs/LIMITATIONS.md` (honest list, e
 See `docs/ASSIGNMENT_AUDIT.md` for a section-by-section audit against the supplied PDF, evidence, gaps and final submission actions. The recorded five-minute demo video and a pushed GitHub repository with meaningful commit history must be supplied by the candidate; neither is present in this workspace.
 
 ## Optional AI extractor
-Set `ANTHROPIC_API_KEY` in `.env` to make an LLM the primary extractor (rules remain the automatic fallback). Without a key the system runs fully offline.
+Set `ANTHROPIC_API_KEY` in `.env` to enable the optional LLM extractor (rules remain the fallback). LLM output is not trusted solely because it is valid JSON: scalar values and each line-item value must be found in source text, with numeric/date normalization. Unsupported output is cleared, confidence remains unavailable, and an `UNGROUNDED_VALUE` blocking issue is recorded. This deterministic evidence check reduces fabrication risk but does not prove semantic correctness; OCR can itself be wrong, so human review remains necessary. Without a key the system runs offline.
 
-## Suggested commit sequence (meaningful history)
-1. `chore: project skeleton, compose, env example, CI`  2. `feat(db): models, schema`  3. `feat(upload): validation, hashing, duplicate detection`
-4. `feat(ocr): pdf text layer + tesseract with confidences`  5. `feat(classify): keyword classifier`  6. `feat(extract): rule-based extractor`
-7. `feat(validate): decimal business rules`  8. `feat(queue): celery pipeline, retry, idempotent claim`  9. `feat(review): corrections, audit, approval gate`
-10. `feat(export): json/csv`  11. `feat(stats): dashboard endpoint`  12. `feat(ui): dashboard and review screens`  13. `test: unit + api tests`
-14. `docs: architecture, samples, test report, limitations`
+## Running all provided samples
+
+With dependencies installed, run `python -m scripts.run_samples` from `backend`. The script regenerates actual JSON and both sample result reports. For real image/scanned-PDF OCR quality results, run it in the Docker Compose backend/worker image (which includes Tesseract and Poppler); host results without OCR must be labeled unavailable, not counted as OCR validation.

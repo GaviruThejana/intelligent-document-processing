@@ -12,7 +12,7 @@ x-backend: &backend
     CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
     ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
     ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-sonnet-4-6}
-  volumes: [uploads:/data/uploads]
+  volumes: [uploads:/data/uploads, ./samples:/app/samples, ./docs:/app/docs]
   depends_on:
     db: { condition: service_healthy }
     redis: { condition: service_healthy }

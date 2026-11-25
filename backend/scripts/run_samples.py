@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path("/app") if Path("/app/app").exists() else Path(__file__).resolve().parents[2]
 tmp = tempfile.mkdtemp(prefix="idp-samples-")
 os.environ.update(DATABASE_URL=f"sqlite:///{tmp}/s.db", UPLOAD_DIR=f"{tmp}/up", QUEUE_MODE="inline", ANTHROPIC_API_KEY="")
 sys.path.insert(0, str(ROOT / "backend"))
@@ -101,12 +101,19 @@ def main():
             fields_ok = fields_n = 0; wrong = []
             for k, v in (exp or {}).items():
                 fields_n += 1
-                if d["data"].get(k) == v: fields_ok += 1
-                else: wrong.append(f"`{k}`: expected `{json.dumps(v)[:70]}` got `{json.dumps(d['data'].get(k))[:70]}`")
-            ok = (d["doc_type"] == etype or (name[:2] in ("10", "15") and d["doc_type"] == "unknown")) and d["status"] == estatus and set(ecodes) <= acts and (fields_ok == fields_n or name[:2] in ("10", "15"))
+                if (d.get("data") or {}).get(k) == v: fields_ok += 1
+                else: wrong.append(f"`{k}`: expected `{json.dumps(v)[:70]}` got `{json.dumps((d.get('data') or {}).get(k))[:70]}`")
+            # Image/scanned-PDF cases cannot be counted as successful extraction expectations
+            # when OCR itself is unavailable, even if their fallback status happens to match.
+            ocr_ready = "OCR_UNAVAILABLE" not in acts
+            ok = ocr_ready and (d["doc_type"] == etype or (name[:2] in ("10", "15") and d["doc_type"] == "unknown")) and d["status"] == estatus and set(ecodes) <= acts and (fields_ok == fields_n or name[:2] in ("10", "15"))
             passed += ok
             acc = f"{fields_ok}/{fields_n}" if exp else "n/a"
-            rows.append((name, d["doc_type"], estatus + " -> **" + d["status"] + "**", ", ".join(sorted(acts)) or "none", acc, f"{d['ocr_mean_confidence']}" if d["ocr_mean_confidence"] is not None else "n/a (text layer)", "PASS" if ok else "FAIL"))
+            conf_label = (f"{d['ocr_mean_confidence']}%" if d["ocr_mean_confidence"] is not None else
+                          "n/a (PDF text layer)" if d["ocr_method"] == "pdf_text" else
+                          "unavailable (OCR failed)" if "OCR_UNAVAILABLE" in acts else
+                          "unavailable (no OCR confidence)")
+            rows.append((name, d["doc_type"], estatus + " -> **" + d["status"] + "**", ", ".join(sorted(acts)) or "none", acc, conf_label, "PASS" if ok else "FAIL"))
             if wrong or not ok:
                 detail.append(f"### {name}\n{note}\n" + "\n".join(f"- {w}" for w in wrong) + f"\n- issues: {sorted(acts)}\n")
     workflow = []

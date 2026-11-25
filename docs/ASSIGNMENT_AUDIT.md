@@ -18,7 +18,7 @@ Reviewed against `Gaviru_3_Day_Technical_Assessment.pdf` on 2026-11-24. Status d
 | 2 | Dashboard for status, errors and processing statistics | Completed | `/stats` and dashboard include status counts, failures, issue counts and timing. |
 | 3 | Extract document number/date, parties, line items, quantities, unit prices, subtotal, tax, discount, total and currency from invoices/POs | Completed | Fields schema and extraction pipeline cover the requested fields; missing values remain null. |
 | 3 | Field confidence when supported; otherwise unavailable | Completed | Tesseract confidence is attached to fields; PDF text-layer and LLM confidence is null and rendered as unavailable. |
-| 3 | Never invent missing values | Completed | Rules are label anchored; LLM output is schema validated and prompted to use null for absent data. |
+| 3 | Never invent missing values | Completed | Rules are label anchored; LLM output is schema validated and every non-null value is checked against source text before validation. Unsupported values are nulled and create a blocking `UNGROUNDED_VALUE` issue. OCR mistakes and semantic misattribution remain human-review risks. |
 | 4 | Incorrect invoice total flagged using decimal arithmetic | Completed | Decimal calculations with mismatch issues and approval gate. |
 | 4 | Duplicate upload returns existing record without another job | Completed | Duplicate detection happens before queueing and is protected by unique hash. |
 | 4 | Missing required fields route to manual review | Completed | `MISSING_FIELD` validation issue blocks automatic readiness. |

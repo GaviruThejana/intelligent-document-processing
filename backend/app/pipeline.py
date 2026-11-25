@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from . import audit
 from .classification import classify
 from .extraction import extract_with_fallback
+from .grounding import ground_fields
 from .models import DocType, Document, Status, ValidationIssue
 from .ocr import OcrUnavailable, read_document
 from .schemas import Fields
@@ -78,7 +79,8 @@ def _run(db: Session, doc: Document) -> None:
     except OcrUnavailable as e:
         # Extraction service unavailable and no fallback possible -> manual review (never silent failure)
         audit.log(db, doc.id, "ocr_unavailable", details={"error": str(e)})
-        _finish(db, doc, DocType.UNKNOWN, 0.0, None, [], available=False)
+        _finish(db, doc, DocType.UNKNOWN, 0.0, None, [], available=False,
+                active_issues=[Issue("OCR_UNAVAILABLE", "error", None, f"OCR could not run: {e}")])
         return
     doc.ocr_text, doc.ocr_method, doc.ocr_mean_confidence = ocr.text, ocr.method, ocr.mean_confidence
     acquisition_issues = [Issue("PDF_PAGE_LIMIT", "warning", None,
@@ -101,8 +103,19 @@ def _run(db: Session, doc: Document) -> None:
             _finish(db, doc, dtype, cconf, None, [], available=False)
             return
         audit.log(db, doc.id, "extraction_completed", details={"extractor": result.extractor})
-        _finish(db, doc, dtype, cconf, result.fields, result.confidence, extractor=result.extractor,
-                active_issues=acquisition_issues + [Issue("UNPARSED_LINE", "warning", "line_items", f"Could not parse line: '{u[:80]}'") for u in result.unparsed])
+        fields = result.fields
+        grounding_issues = []
+        if result.extractor == "llm":
+            fields, rejected = ground_fields(fields, ocr.text)
+            grounding_issues = [Issue("UNGROUNDED_VALUE", "error", item.field,
+                                      f"LLM value for '{item.field}' was removed because it could not be verified in source text.")
+                                for item in rejected]
+            for item in rejected:
+                result.confidence[item.field] = None
+            audit.log(db, doc.id, "llm_grounding_completed",
+                      details={"rejected_fields": [item.field for item in rejected], "rejected_count": len(rejected)})
+        _finish(db, doc, dtype, cconf, fields, result.confidence, extractor=result.extractor,
+                active_issues=acquisition_issues + grounding_issues + [Issue("UNPARSED_LINE", "warning", "line_items", f"Could not parse line: '{u[:80]}'") for u in result.unparsed])
     else:  # receipt (classification only) / unknown -> blank fields, manual entry
         _finish(db, doc, dtype, cconf, None, [], extractor="none", active_issues=acquisition_issues)
 

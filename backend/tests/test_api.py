@@ -6,7 +6,7 @@ import pytest
 
 from app import extraction, ocr, pipeline
 from app.db import SessionLocal
-from app.models import Document
+from app.models import DocType, Document
 from tests import factory
 
 U = "/api/v1/documents"
@@ -185,6 +185,25 @@ def test_extraction_service_unavailable_falls_back(api, monkeypatch):
     assert ev and ev[0]["details"]["extractor"] == "llm"
 
 
+def test_llm_ungrounded_values_are_nulled_and_block_approval(api, client, monkeypatch):
+    from app.extraction import Extraction, rules_extract
+    original = rules_extract([ocr.OcrLine(x, None) for x in factory.invoice_lines()], DocType.INVOICE)
+    fabricated = dict(original.fields)
+    fabricated["total"] = "999.99"
+    fabricated["supplier_name"] = "Invented Holdings"
+    monkeypatch.setattr(pipeline, "extract_with_fallback",
+                        lambda *args: (Extraction(fabricated, {}, "llm"), []))
+    doc_id = upload_ok(api)
+    d = api.doc(doc_id)
+    assert d["extractor"] == "llm" and d["data"]["total"] is None
+    assert d["data"]["supplier_name"] is None
+    assert {i["code"] for i in d["issues"]} >= {"UNGROUNDED_VALUE", "MISSING_FIELD"}
+    assert d["status"] == "Needs Review"
+    assert client.post(f"{U}/{doc_id}/approve", json={}).status_code == 409
+    event = [e for e in api.audit(doc_id) if e["event_type"] == "llm_grounding_completed"][-1]
+    assert set(event["details"]["rejected_fields"]) == {"total", "supplier_name"}
+
+
 def test_all_extractors_down_means_manual_review(api, monkeypatch):
     monkeypatch.setattr(pipeline, "extract_with_fallback", lambda *a: (None, [{"extractor": "rules", "error": "boom"}]))
     d = api.doc(upload_ok(api))
@@ -195,7 +214,7 @@ def test_ocr_unavailable_means_manual_review(api, monkeypatch):
     def boom(*a): raise ocr.OcrUnavailable("tesseract missing")
     monkeypatch.setattr(pipeline, "read_document", boom)
     d = api.doc(upload_ok(api))
-    assert d["status"] == "Needs Review" and "EXTRACTION_UNAVAILABLE" in {i["code"] for i in d["issues"]}
+    assert d["status"] == "Needs Review" and {"EXTRACTION_UNAVAILABLE", "OCR_UNAVAILABLE"} <= {i["code"] for i in d["issues"]}
 
 
 def test_unexpected_failure_then_controlled_retry_without_duplicates(api, client, monkeypatch):

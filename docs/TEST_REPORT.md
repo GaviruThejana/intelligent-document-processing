@@ -1,5 +1,17 @@
 # Test report
 
+## Fresh verification — 2026-11-25
+
+Test run: **2026-11-25 15:29 Asia/Colombo**. Command: `..\\.venv\\Scripts\\python.exe -m pytest backend/tests -q` from the repository root. Environment: Windows, Python 3.13.9, pytest 9.2.0, Pillow 13.0.0.
+
+**Backend result: 46 collected, 43 passed, 3 skipped, 0 failed.** The skipped image and scanned-PDF tests require Tesseract/English data, which are absent on this host. Added unit coverage for scalar and line-item grounding (including normalized dates/currency/decimals), plus an API pipeline test proving invented LLM fields are nulled, audited and cannot be approved while the grounding issue is unresolved.
+
+**Fresh sample pipeline:** `python -m scripts.run_samples` completed at **2026-11-25 15:30:31 Asia/Colombo** through FastAPI `TestClient` + SQLite + inline processing. It passed **10/15** sample expectations and **3/3** review/approval/export checks. All five OCR-dependent image/scanned-PDF samples failed their extraction expectations because the actual results were `OCR_UNAVAILABLE`, `EXTRACTION_UNAVAILABLE` and `UNKNOWN_DOCUMENT_TYPE`; they are not counted as successful OCR runs. The report labels confidence as unavailable instead of incorrectly labeling image OCR as a PDF text layer. See [`SAMPLE_RESULTS.md`](../SAMPLE_RESULTS.md).
+
+**Compose check:** `docker compose config -q` parsed the Compose configuration. Docker CLI is present, but the Docker engine pipe returned `permission denied` (`npipe:////./pipe/dockerDesktopLinuxEngine`), so service startup, health checks and real PostgreSQL/Redis/Celery processing could not be verified. Do not treat SQLite/inline results as a production-topology run. `.env` was not opened or changed; Git confirms `.env` is not tracked.
+
+**Frontend and dependency checks:** Earlier verification remains in the historical section below; the frontend was not changed in this pass and was not rebuilt during this run.
+
 ## Fresh verification — 2026-11-24
 
 Test run: **2026-11-24 18:26:11–18:26:25 Asia/Colombo**. Command: `python -m pytest tests -q` from `backend/`. Environment: Windows, Python 3.13.9, pytest 9.2.0, Pillow 13.0.0.
@@ -12,18 +24,19 @@ Python dependency install from the pinned `backend/requirements-dev.txt` succeed
 
 **Fresh sample pipeline:** `python -m scripts.run_samples` ran through FastAPI `TestClient` + SQLite + inline processing on **2026-11-24 18:21:19–18:21:25 Asia/Colombo**. It passed **10/15** ingestion/extraction expectations and **3/3** review/approval/export checks. Five OCR samples did not match expectations because Tesseract was unavailable; see both current sample reports at [`SAMPLE_RESULTS.md`](../SAMPLE_RESULTS.md) and [`docs/SAMPLE_RESULTS.md`](SAMPLE_RESULTS.md). The workflow checks verified duplicate same-ID/no-extra-record handling, blocked pre-approval exports, corrections preserving original values and writing audit events, approval, and single/bulk JSON and CSV export paths.
 
-**Not verified in this environment:** Docker Compose startup/health and real PostgreSQL + Redis + Celery integration; Docker is not installed here. The sample runner uses SQLite/inline queue and does not substitute for the full Compose topology. This workspace also has no `.git` directory, so repository history/status checks were unavailable.
+**Not verified in this environment:** Docker Compose startup/health and real PostgreSQL + Redis + Celery integration; the Docker engine pipe is inaccessible. The sample runner uses SQLite/inline queue and does not substitute for the full Compose topology. The repository has a `.git` directory; no commits were created during this verification.
 
 ## Current acceptance coverage
 
 | Scenario | Fresh status | Evidence / caveat |
 |---|---|---|
-| Wrong total, missing fields, duplicate, retry, correction, approval gate and exports | PASS | Fresh API suite and sample workflow; see 40 passing tests and 3/3 sample workflow checks above. |
-| Image and scanned-PDF OCR | SKIPPED / ENVIRONMENT BLOCKED | Requires Tesseract; executable is absent. Five OCR sample rows show the actual unavailable-extractor behavior. |
-| Noisy scan treatment | SKIPPED / ENVIRONMENT BLOCKED | OCR-specific API test skipped; sample rows show fallback output, not OCR accuracy. |
-| Frontend production compilation | PASS | `npm run build` on Next 16.4.6 / React 19.3.1. |
-| Frontend package audit | PASS | `npm audit --json`: zero vulnerabilities. |
-| Docker + production queue integration | NOT RUN | Docker unavailable on this host. |
+| Unit/API suite: validation, duplicate, retry, correction, approval, exports | PASS | 43 passed; includes API workflow and business edge cases. |
+| LLM grounding and approval block | PASS (mocked LLM result) | Unit + pipeline API tests; live Anthropic success path not exercised. |
+| Samples and review/export workflow | PARTIAL | 10/15 extraction expectations; 3/3 workflow checks. Five OCR-dependent samples failed because OCR was unavailable. |
+| Image/scanned-PDF OCR and noisy scans | ENVIRONMENT BLOCKED | Three OCR API tests skipped; sample outputs show `OCR_UNAVAILABLE`, not OCR accuracy. |
+| Frontend production build and package audit | HISTORICAL PASS | Last verified 2026-11-24; not rebuilt during this run. |
+| Compose config | PASS | `docker compose config -q` succeeds. |
+| Docker services / PostgreSQL + Redis + Celery | NOT RUN | Docker engine pipe returned permission denied. |
 
 ## Earlier verification record (historical; not the fresh result above)
 

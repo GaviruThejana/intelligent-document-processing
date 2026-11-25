@@ -6,6 +6,7 @@ from app.extraction import last_amount, parse_date, rules_extract, to_number_str
 from app.models import DocType
 from app.ocr import OcrLine
 from app.validation import validate
+from app.grounding import ground_fields
 from tests import factory
 
 
@@ -122,3 +123,27 @@ def test_unparseable_item_row_is_reported_not_dropped():
 def test_poor_scan_flag_raised_even_if_unclassifiable():
     codes = {i.code for i in validate("unknown", {}, {}, 23.0)}
     assert {"POOR_SCAN_QUALITY", "UNKNOWN_DOCUMENT_TYPE"} <= codes
+
+
+def test_llm_grounding_removes_fabricated_values_but_keeps_source_evidence():
+    fields = {"document_number": "INV-1001", "document_date": "2026-01-15",
+              "supplier_name": "Acme Supplies Ltd", "customer_name": "Fictional Buyer",
+              "currency": "USD", "subtotal": "101.00", "tax": "9.10", "discount": "10.00",
+              "total": "999.99", "line_items": [
+                  {"description": "USB-C Cable", "quantity": "10", "unit_price": "5.00", "amount": "50.00"},
+                  {"description": "Invented Widget", "quantity": "2", "unit_price": "2.00", "amount": "4.00"}]}
+    source = "\n".join(factory.invoice_lines())
+    result, issues = ground_fields(fields, source)
+    assert result["document_number"] == "INV-1001" and result["total"] is None
+    assert result["customer_name"] is None
+    assert result["line_items"][0]["amount"] == "50.00"
+    assert result["line_items"][1] == {"description": None, "quantity": None, "unit_price": None, "amount": None}
+    assert {i.field for i in issues} == {"customer_name", "total", "line_items.1.description", "line_items.1.quantity",
+                                        "line_items.1.unit_price", "line_items.1.amount"}
+
+
+def test_llm_grounding_handles_decimal_currency_and_date_normalization():
+    src = "Date: 15/01/2026\nCurrency: Rs.\nTotal: Rs. 1,250.50"
+    fields = {"document_date": "2026-01-15", "currency": "LKR", "total": "1250.50"}
+    result, issues = ground_fields(fields, src)
+    assert result == fields and issues == []
