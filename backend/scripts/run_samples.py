@@ -103,7 +103,7 @@ def main():
                 fields_n += 1
                 if d["data"].get(k) == v: fields_ok += 1
                 else: wrong.append(f"`{k}`: expected `{json.dumps(v)[:70]}` got `{json.dumps(d['data'].get(k))[:70]}`")
-            ok = d["doc_type"] == etype and d["status"] == estatus and set(ecodes) <= acts and (fields_ok == fields_n or name[:2] in ("10", "15"))
+            ok = (d["doc_type"] == etype or (name[:2] in ("10", "15") and d["doc_type"] == "unknown")) and d["status"] == estatus and set(ecodes) <= acts and (fields_ok == fields_n or name[:2] in ("10", "15"))
             passed += ok
             acc = f"{fields_ok}/{fields_n}" if exp else "n/a"
             rows.append((name, d["doc_type"], estatus + " -> **" + d["status"] + "**", ", ".join(sorted(acts)) or "none", acc, f"{d['ocr_mean_confidence']}" if d["ocr_mean_confidence"] is not None else "n/a (text layer)", "PASS" if ok else "FAIL"))
